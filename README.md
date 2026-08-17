@@ -25,51 +25,78 @@ Program to implement the multivariate linear regression model for predicting the
 Developed by: Srisanth R
 RegisterNumber: 212225240156 
 */
+import numpy as np
 import pandas as pd
-from sklearn.linear_model import SGDRegressor
+from sklearn.datasets import fetch_california_housing
+from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import SGDRegressor
+from sklearn.metrics import mean_squared_error, r2_score
 
-# Load dataset
-data = pd.read_csv("house.csv")
-#print(data.columns)
-data.columns = data.columns.str.strip()
-# Features (inputs)
-X = data[['Size', 'Bedrooms']]
+# Load California Housing dataset
+housing = fetch_california_housing()
 
-# Targets (outputs)
-y_price = data['Price']
-y_occ = data['Occupants']
+X = housing.data
+y = housing.target
 
-# Scaling (important for SGD)
+# Display dataset
+data = pd.DataFrame(X, columns=housing.feature_names)
+data["Target"] = y
+
+print(data.head())
+
+# Split the dataset into training and testing data
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+
+# Standardize the features
 scaler = StandardScaler()
-X_scaled = scaler.fit_transform(X)
 
-# Models
-price_model = SGDRegressor(max_iter=1000, learning_rate='constant', eta0=0.01)
-occ_model = SGDRegressor(max_iter=1000, learning_rate='constant', eta0=0.01)
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
 
-# Train models
-price_model.fit(X_scaled, y_price)
-occ_model.fit(X_scaled, y_occ)
+# Create SGD Regression model
+model = SGDRegressor(
+    learning_rate="constant",
+    eta0=0.01,
+    max_iter=1000,
+    random_state=42
+)
 
-# Input
-size = float(input("Enter house size: "))
-bed = int(input("Enter number of bedrooms: "))
+# Train the model
+model.fit(X_train, y_train)
 
-# Scale input
-new_data = scaler.transform([[size, bed]])
+# Predict
+y_pred = model.predict(X_test)
 
-# Prediction
-pred_price = price_model.predict(new_data)
-pred_occ = occ_model.predict(new_data)
+# Display coefficients and intercept
+print("\nCoefficients:")
+print(model.coef_)
 
-print("Predicted Price:", pred_price[0])
-print("Predicted Occupants:", round(pred_occ[0]))
+print("\nIntercept:")
+print(model.intercept_)
+
+# Model Evaluation
+mse = mean_squared_error(y_test, y_pred)
+r2 = r2_score(y_test, y_pred)
+
+print("\nMean Squared Error:", mse)
+print("R2 Score:", r2)
+
+# Actual vs Predicted values
+results = pd.DataFrame({
+    "Actual": y_test,
+    "Predicted": y_pred
+})
+
+print("\nActual vs Predicted:")
+print(results.head(10))
+
 ```
 
 ## Output:
-<img width="1062" height="79" alt="Screenshot 2026-04-27 091146" src="https://github.com/user-attachments/assets/8fe8c986-ef2b-41f7-b7af-c8cbb4690923" />
-
+<img width="650" height="627" alt="Screenshot 2026-08-17 113558" src="https://github.com/user-attachments/assets/a6c098d9-811a-4ac9-b454-b9776961aa88" />
 
 ## Result:
 Thus the program to implement the multivariate linear regression model for predicting the price of the house and number of occupants in the house with SGD regressor is written and verified using python programming.
